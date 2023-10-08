@@ -1,0 +1,127 @@
+<div class="flex flex-col max-w-screen-lg mx-auto py-4 px-4">
+  <div class="flex items-center">
+    <span class="tracking-tighter flex-grow">
+      <h1 class="leading-none text-6xl font-thin">Notakto</h1>
+      <h1 class="leading-none text-xl font-semibold">Monte Carlo Tree Search</h1>
+    </span>
+    <a href="https://github.com/khaled-hamam/notakto" target="_blank" aria-label="Homepage" class="footer-octicon" title="GitHub" class="ml-auto">
+      <svg
+        aria-hidden="true"
+        height="50"
+        version="1.1"
+        viewBox="0 0 16 16"
+        width="50"
+        fill="currentColor"
+      >
+        <path
+          fill-rule="evenodd"
+          d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"
+        >
+        </path>
+      </svg>
+    </a>
+  </div>
+
+  <p class="mt-8 text-md tracking-wide">
+    <a target="_blank" href="https://en.wikipedia.org/wiki/Notakto">
+      <i><strong><u>Notakto</u></strong></i>
+    </a>
+    is a game where two players take turns placing X's on a board. The first player to get three in a row loses.
+  </p>
+  <p class="mt-4 font-medium text-md tracking-wide leading-relaxed">
+    This implementation utilizes the
+    <a target="_blank" href="https://en.wikipedia.org/wiki/Monte_Carlo_tree_search">
+      <i><strong><u>Monte Carlo Tree Search (MCTS)</u></strong></i>
+    </a>
+    algorithm. Initially, the computer selects random moves, gradually accumulating data on game outcomes. As it does so, it employs the
+    <a target="_blank" href="https://www.chessprogramming.org/UCT">
+      <i><strong><u>Upper Confidence Bound for Trees (UCT)</u></strong></i>
+    </a>
+    principle, striking a balance between exploring new possibilities and exploiting known strategies. Over time, this iterative process refines the computer's gameplay strategy, making it increasingly informed and strategic in its decisions.
+  </p>
+  <p class="mt-4 font-light">
+    Note: The iterations are set to 1000
+  </p>
+
+  <div class="flex space-x-2 max-w-md items-center mt-11 mx-auto">
+    <label>Board Size</label>
+    <form phx-submit="start_game">
+      <input
+        class="flex-grow rounded-md bg-background max-w-[60px]"
+        name="size"
+        type="number"
+        value={@size}
+        max="6"
+        min="3"
+      />
+      <button
+        class="rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 ml-auto"
+        type="submit"
+      >
+        Start Game
+      </button>
+    </form>
+  </div>
+
+  <div class={"grid grid-rows-#{@size} grid-cols-#{@size} gap-2 mb-4 mt-8 w-fit mx-auto"}>
+    <%= for row <- 0..(@size-1) do %>
+      <%= for col <- 0..(@size-1) do %>
+        <% player = Map.get(@game_state.board, [row, col]) %>
+        <button
+          class={"relative md:h-28 md:w-28 #{
+            case @size do
+              3 -> "h-20 w-20"
+              4 -> "h-16 w-16"
+              _ -> "h-12 w-12"
+            end
+          } md:p-4 p-1 text-center border rounded #{
+          case player do
+            :x -> "bg-primary-foreground text-primary"
+            :y -> "bg-secondary-foreground text-secondary"
+            _ -> "bg-background"
+          end
+        } #{ if @winner == :none do "md:hover:border-4" end }"}
+          disabled={player != :none || @winner != :none}
+          phx-click="play"
+          phx-value-row={row}
+          phx-value-col={col}
+        >
+          <%= if player != :none do %>
+            <p class="absolute top-1 md:visible left-1 md:text-xs text-[10px]">
+              <%= if player == :x do %>
+                You
+              <% else %>
+                Computer
+              <% end %>
+            </p>
+            <p class="md:text-6xl text-2xl font-black">
+              X
+            </p>
+          <% end %>
+        </button>
+      <% end %>
+    <% end %>
+  </div>
+
+  <%= if @winner != :none do %>
+    <div class="flex flex-col space-y-2 max-w-md items-center mt-11 mx-auto">
+      <p class="text-2xl font-semibold">
+        <%= if @winner == :x do %>
+          You win!
+        <% else %>
+          You lose!
+        <% end %>
+      </p>
+    </div>
+  <% end %>
+</div>
+<footer class="mt-12 flex flex-col max-w-screen-lg mx-auto py-4 px-4 text-sm font-light">
+  <p>
+    This implementation is using Elixir and Phoenix LiveView. Why? Because I wanted to try it out 🤷🏻‍♂️.
+    <br>
+    I used this <a target="_blank" href="https://github.com/rjdellecese/connect_four_umbrella"><i><strong><u>repository</u></strong></i></a> as a reference for the implementation of the MCTS and copied the Zipper datastructre from it, I highly recommend checking it out.
+  </p>
+  <p class="mt-4">
+    Coded with ❤️ by <a target="_blank" href="https://github.com/khaled-hamam"><i><strong><u>Khaled Hamam</u></strong></i></a>
+  </p>
+</footer>
